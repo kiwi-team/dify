@@ -228,7 +228,8 @@ class AccountService:
     @staticmethod
     def load_logged_in_account(*, account_id: str, token: str):
         if not redis_client.get(_get_login_cache_key(account_id=account_id, token=token)):
-            return None
+            pass
+            #return None
         return AccountService.load_user(account_id)
 
     @classmethod

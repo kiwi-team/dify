@@ -124,6 +124,7 @@ class AppApi(Resource):
     @get_app_model
     @marshal_with(app_detail_fields_with_site)
     def put(self, app_model):
+        # wmtodo 需要校验身份权限
         """Update app"""
         # The role of the current user in the ta table must be admin, owner, or editor
         if not current_user.is_editor:
@@ -148,6 +149,7 @@ class AppApi(Resource):
     @get_app_model
     def delete(self, app_model):
         """Delete app"""
+        # wmtodo 需要校验身份权限
         # The role of the current user in the ta table must be admin, owner, or editor
         if not current_user.is_editor:
             raise Forbidden()
@@ -191,6 +193,7 @@ class AppExportApi(Resource):
     @get_app_model
     def get(self, app_model):
         """Export app"""
+        # wmtodo
         # The role of the current user in the ta table must be admin, owner, or editor
         if not current_user.is_editor:
             raise Forbidden()
