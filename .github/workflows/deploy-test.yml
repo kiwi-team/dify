@@ -61,7 +61,7 @@ jobs:
         #ARGS: "-rltgoDzvO --delete"
         SOURCE: "api"
         # Target directory
-        TARGET: "/data/www/dify/api"
+        TARGET: "/data/www/dify"
         EXCLUDE: .git
 
     - name: run server
