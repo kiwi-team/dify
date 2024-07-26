@@ -1,5 +1,7 @@
 # base image
 FROM python:3.10-slim-bookworm AS base
+# https://mirrors.tuna.tsinghua.edu.cn/help/debian/
+COPY ./debian.sources  /etc/apt/sources.list.d/
 
 WORKDIR /app/api
 
@@ -20,6 +22,7 @@ RUN apt-get update \
 
 # Install Python dependencies
 COPY pyproject.toml poetry.lock ./
+ENV POETRY_PYPI_MIRROR_URL=https://mirrors.cloud.tencent.com/pypi/simple/
 RUN poetry install --sync --no-cache --no-root
 
 # production stage

@@ -78,14 +78,17 @@ class WordExtractor(BaseExtractor):
                 image_count += 1
                 if rel.is_external:
                     url = rel.reltype
-                    response = requests.get(url, stream=True)
-                    if response.status_code == 200:
-                        image_ext = mimetypes.guess_extension(response.headers['Content-Type'])
-                        file_uuid = str(uuid.uuid4())
-                        file_key = 'image_files/' + self.tenant_id + '/' + file_uuid + '.' + image_ext
-                        mime_type, _ = mimetypes.guess_type(file_key)
-                        storage.save(file_key, response.content)
-                    else:
+                    try:
+                        response = requests.get(url, stream=True)
+                        if response.status_code == 200:
+                            image_ext = mimetypes.guess_extension(response.headers['Content-Type'])
+                            file_uuid = str(uuid.uuid4())
+                            file_key = 'image_files/' + self.tenant_id + '/' + file_uuid + '.' + image_ext
+                            mime_type, _ = mimetypes.guess_type(file_key)
+                            storage.save(file_key, response.content)
+                        else:
+                            continue
+                    except:
                         continue
                 else:
                     image_ext = rel.target_ref.split('.')[-1]

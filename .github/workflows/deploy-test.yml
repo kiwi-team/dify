@@ -74,7 +74,6 @@ jobs:
         script: |
           cd /data/www/dify/api
           docker build -t difyapi:v1 .
-          docker stop difyapi
-          docker rm difyapi
-          docker run --restart=always --name difyapi -p 5001:5001   -d  difyapi:v1
+          docker-compose down
+          docker-compose up -d
           docker images | grep none | awk '{print $3}' | xargs docker rmi 
