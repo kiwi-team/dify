@@ -23,6 +23,7 @@ RUN apt-get update \
 # Install Python dependencies
 COPY pyproject.toml poetry.lock ./
 ENV POETRY_PYPI_MIRROR_URL=https://mirrors.cloud.tencent.com/pypi/simple/
+ENV REQUESTS_TIMEOUT=300
 RUN poetry install --sync --no-cache --no-root
 
 # production stage
