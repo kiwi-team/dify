@@ -63,6 +63,9 @@ class App(db.Model):
     mode = db.Column(db.String(255), nullable=False)
     icon = db.Column(db.String(255))
     icon_background = db.Column(db.String(255))
+    cover = db.Column(db.String(500),nullable=False, server_default=db.text("''::character varying")) # 封面
+    score = db.Column(db.Integer,nullable=False, server_default=db.text('0')) # 积分标签
+    open_times= db.Column(db.Integer,nullable=False, server_default=db.text('0')) # 热度(打开次数)
     app_model_config_id = db.Column(StringUUID, nullable=True)
     workflow_id = db.Column(StringUUID, nullable=True)
     status = db.Column(db.String(255), nullable=False, server_default=db.text("'normal'::character varying"))
@@ -200,6 +203,11 @@ class App(db.Model):
         ).all()
 
         return tags if tags else []
+    
+    @property
+    def cover_image(self):
+         sign_url = UploadFileParser.get_signed_temp_image_url(self.cover)
+         return sign_url
 
 
 class AppModelConfig(db.Model):

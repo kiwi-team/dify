@@ -62,6 +62,8 @@ class AppListApi(Resource):
         parser.add_argument('mode', type=str, choices=ALLOW_CREATE_APP_MODES, location='json')
         parser.add_argument('icon', type=str, location='json')
         parser.add_argument('icon_background', type=str, location='json')
+        parser.add_argument('score', type=int, location='json')
+        parser.add_argument('cover', type=str, location='json')
         args = parser.parse_args()
 
         # The role of the current user in the ta table must be admin, owner, or editor
