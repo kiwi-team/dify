@@ -78,6 +78,7 @@ app_partial_fields = {
     'icon': fields.String,
     'icon_background': fields.String,
     'cover_image': fields.String,
+    'open_times': fields.String,
     'score': fields.Integer,
     'model_config': fields.Nested(model_config_partial_fields, attribute='app_model_config', allow_null=True),
     'created_at': TimestampField,

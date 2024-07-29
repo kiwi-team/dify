@@ -206,7 +206,9 @@ class App(db.Model):
     
     @property
     def cover_image(self):
-         sign_url = UploadFileParser.get_signed_temp_image_url(self.cover)
+         sign_url = ""
+         if self.cover != "": 
+             sign_url = UploadFileParser.get_signed_temp_image_url(self.cover)
          return sign_url
 
 
