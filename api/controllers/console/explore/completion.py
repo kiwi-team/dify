@@ -26,6 +26,8 @@ from libs import helper
 from libs.helper import uuid_value
 from models.model import AppMode
 from services.app_generate_service import AppGenerateService
+from services.app_score import AppScore 
+from extensions.ext_redis import redis_client
 
 
 # define completion api for user
@@ -157,7 +159,27 @@ class ChatStopApi(InstalledAppResource):
         return {'result': 'success'}, 200
 
 
+class ChatScoreApi(InstalledAppResource):
+    '''
+    判断聊天是否获得积分
+    '''
+    def get(self,installed_app, conversation_id):
+        app_model = installed_app.app
+        app_mode = AppMode.value_of(app_model.mode)
+        if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
+            raise NotChatAppError()
+        if app_model.pass_type == 'count':
+            conversationLength = AppScore.getConversationLength(conversation_id)
+            # wmtodo 需要同步积分,
+            if app_model.pass_config['count'] == conversationLength:
+                return {'message':f'恭喜顺利通过，{app_model.score}积分已到账！','code':0},200
+        elif app_model.pass_type == 'checkpoint':
+            # 下一期做
+            pass
+        return {'message':'','code':0},200
+
 api.add_resource(CompletionApi, '/installed-apps/<uuid:installed_app_id>/completion-messages', endpoint='installed_app_completion')
 api.add_resource(CompletionStopApi, '/installed-apps/<uuid:installed_app_id>/completion-messages/<string:task_id>/stop', endpoint='installed_app_stop_completion')
 api.add_resource(ChatApi, '/installed-apps/<uuid:installed_app_id>/chat-messages', endpoint='installed_app_chat_completion')
+api.add_resource(ChatScoreApi, '/installed-apps/<uuid:installed_app_id>/score/<uuid:conversation_id>')
 api.add_resource(ChatStopApi, '/installed-apps/<uuid:installed_app_id>/chat-messages/<string:task_id>/stop', endpoint='installed_app_stop_chat_completion')

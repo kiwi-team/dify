@@ -154,7 +154,7 @@ app_basic_detail_fields={
     'cover_image': fields.String,
     'pass_type':fields.String,
     'pass_condition':fields.String,
-    'pass_config':fields.String,
+    'pass_config':fields.Raw,
     'score': fields.Integer,
     'created_at': TimestampField,
 }
