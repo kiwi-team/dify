@@ -54,6 +54,14 @@ class KeywordStoreConfig(BaseSettings):
 
 
 class DatabaseConfig:
+    BIND_KEY1:str = Field(
+        description='',
+        default='llmtest',
+    )
+    BIND_DB1:str = Field(
+        description='other db connection',
+        default='',
+    )
     DB_HOST: str = Field(
         description='db host',
         default='localhost',
@@ -106,6 +114,13 @@ class DatabaseConfig:
         return (f"{self.SQLALCHEMY_DATABASE_URI_SCHEME}://"
                 f"{self.DB_USERNAME}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_DATABASE}"
                 f"{db_extras}")
+
+    @computed_field
+    @property
+    def SQLALCHEMY_BINDS(self) -> dict:
+        return {
+            self.BIND_KEY1: self.BIND_DB1
+        }
 
     SQLALCHEMY_POOL_SIZE: NonNegativeInt = Field(
         description='pool size of SqlAlchemy',

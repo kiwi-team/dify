@@ -27,7 +27,6 @@ from libs.helper import uuid_value
 from models.model import AppMode
 from services.app_generate_service import AppGenerateService
 from services.app_score import AppScore 
-from extensions.ext_redis import redis_client
 
 
 # define completion api for user
@@ -178,8 +177,20 @@ class ChatScoreApi(InstalledAppResource):
             pass
         return {'message':'','code':0},200
 
+
+class ChatStartApi(InstalledAppResource):
+    def get(self,installed_app):
+        app_model = installed_app.app
+        app_mode = AppMode.value_of(app_model.mode)
+        if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
+            raise NotChatAppError()
+
+        app_model.open_times = app_model.open_times + 1
+        db.session.commit()
+        return {'result': 'success'}, 200
 api.add_resource(CompletionApi, '/installed-apps/<uuid:installed_app_id>/completion-messages', endpoint='installed_app_completion')
 api.add_resource(CompletionStopApi, '/installed-apps/<uuid:installed_app_id>/completion-messages/<string:task_id>/stop', endpoint='installed_app_stop_completion')
 api.add_resource(ChatApi, '/installed-apps/<uuid:installed_app_id>/chat-messages', endpoint='installed_app_chat_completion')
 api.add_resource(ChatScoreApi, '/installed-apps/<uuid:installed_app_id>/score/<uuid:conversation_id>')
+api.add_resource(ChatStartApi, '/installed-apps/<uuid:installed_app_id>/chat-start')
 api.add_resource(ChatStopApi, '/installed-apps/<uuid:installed_app_id>/chat-messages/<string:task_id>/stop', endpoint='installed_app_stop_chat_completion')
