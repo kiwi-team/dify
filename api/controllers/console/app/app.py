@@ -1,4 +1,5 @@
 import uuid
+import json
 
 from flask_login import current_user
 from flask_restful import Resource, inputs, marshal, marshal_with, reqparse
@@ -13,11 +14,13 @@ from fields.app_fields import (
     app_detail_fields,
     app_detail_fields_with_site,
     app_pagination_fields,
+    app_basic_detail_fields,
 )
 from libs.login import login_required
 from services.app_service import AppService
 
 ALLOW_CREATE_APP_MODES = ['chat', 'agent-chat', 'advanced-chat', 'workflow', 'completion']
+PASS_TYPES = ['count','checkpoint']
 
 
 class AppListApi(Resource):
@@ -64,6 +67,11 @@ class AppListApi(Resource):
         parser.add_argument('icon_background', type=str, location='json')
         parser.add_argument('score', type=int, location='json')
         parser.add_argument('cover', type=str, location='json')
+        parser.add_argument('pass_condition', type=str, location='json')
+        parser.add_argument('pass_type', type=str, choices=PASS_TYPES, location='json')
+        parser.add_argument('pass_config', type=dict, location='json')
+        parser.add_argument('is_public', type=bool, location='json')
+
         args = parser.parse_args()
 
         # The role of the current user in the ta table must be admin, owner, or editor
@@ -138,6 +146,12 @@ class AppApi(Resource):
         parser.add_argument('icon', type=str, location='json')
         parser.add_argument('icon_background', type=str, location='json')
         parser.add_argument('max_active_requests', type=int, location='json')
+        parser.add_argument('score', type=int, location='json')
+        parser.add_argument('cover', type=str, location='json')
+        parser.add_argument('pass_condition', type=str, location='json')
+        parser.add_argument('pass_type', type=str, choices=PASS_TYPES, location='json')
+        parser.add_argument('pass_config', type=dict, location='json')
+        parser.add_argument('is_public', type=bool, location='json')
         args = parser.parse_args()
 
         app_service = AppService()
@@ -161,6 +175,20 @@ class AppApi(Resource):
 
         return {'result': 'success'}, 204
 
+class AppBasicApi(Resource):
+    @setup_required
+    @login_required
+    @account_initialization_required
+    @get_app_model
+    @marshal_with(app_basic_detail_fields)
+    def get(self, app_model):
+        """Get app detail"""
+        app_service = AppService()
+
+        app_model = app_service.get_app(app_model)
+
+        return app_model
+ 
 
 class AppCopyApi(Resource):
     @setup_required
@@ -328,6 +356,7 @@ class AppTraceApi(Resource):
 api.add_resource(AppListApi, '/apps')
 api.add_resource(AppImportApi, '/apps/import')
 api.add_resource(AppApi, '/apps/<uuid:app_id>')
+api.add_resource(AppBasicApi, '/apps/basic/<uuid:app_id>')
 api.add_resource(AppCopyApi, '/apps/<uuid:app_id>/copy')
 api.add_resource(AppExportApi, '/apps/<uuid:app_id>/export')
 api.add_resource(AppNameApi, '/apps/<uuid:app_id>/name')

@@ -78,6 +78,7 @@ app_partial_fields = {
     'icon': fields.String,
     'icon_background': fields.String,
     'cover_image': fields.String,
+    'pass_condition': fields.String,
     'open_times': fields.String,
     'score': fields.Integer,
     'model_config': fields.Nested(model_config_partial_fields, attribute='app_model_config', allow_null=True),
@@ -141,6 +142,21 @@ app_detail_fields_with_site = {
     'api_base_url': fields.String,
     'created_at': TimestampField,
     'deleted_tools': fields.List(fields.String),
+}
+
+app_basic_detail_fields={
+    'id': fields.String,
+    'name': fields.String,
+    'description': fields.String,
+    'mode': fields.String(attribute='mode_compatible_with_agent'),
+    'icon': fields.String,
+    'icon_background': fields.String,
+    'cover_image': fields.String,
+    'pass_type':fields.String,
+    'pass_condition':fields.String,
+    'pass_config':fields.String,
+    'score': fields.Integer,
+    'created_at': TimestampField,
 }
 
 app_site_fields = {

@@ -125,6 +125,10 @@ class AppService:
         app.icon_background = args['icon_background']
         app.cover= args['cover']
         app.score= args.get('score',0)
+        app.pass_condition = args.get('pass_condition','')
+        app.pass_type = args.get('pass_type','count')
+        app.pass_config = args.get('pass_config')
+        app.is_public = args.get('is_public',False)
         app.tenant_id = tenant_id
         app.api_rph = args.get('api_rph', 0)
         app.api_rpm = args.get('api_rpm', 0)
@@ -330,6 +334,12 @@ class AppService:
         app.max_active_requests = args.get('max_active_requests')
         app.icon = args.get('icon')
         app.icon_background = args.get('icon_background')
+        app.score = args.get('score')
+        app.cover = args.get('cover','')
+        app.pass_condition = args.get('pass_condition','')
+        app.pass_type = args.get('pass_type','')
+        app.pass_config = args.get('pass_config')
+        app.is_public = args.get('is_public',False)
         app.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
 
