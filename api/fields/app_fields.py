@@ -77,10 +77,12 @@ app_partial_fields = {
     'mode': fields.String(attribute='mode_compatible_with_agent'),
     'icon': fields.String,
     'icon_background': fields.String,
+    'cover': fields.String,
     'cover_image': fields.String,
     'pass_condition': fields.String,
     'open_times': fields.String,
     'score': fields.Integer,
+    'is_public': fields.Boolean,
     'model_config': fields.Nested(model_config_partial_fields, attribute='app_model_config', allow_null=True),
     'created_at': TimestampField,
     'tags': fields.List(fields.Nested(tag_fields))
@@ -152,10 +154,12 @@ app_basic_detail_fields={
     'icon': fields.String,
     'icon_background': fields.String,
     'cover_image': fields.String,
+    'cover': fields.String,
     'pass_type':fields.String,
     'pass_condition':fields.String,
     'pass_config':fields.Raw,
     'score': fields.Integer,
+    'is_public': fields.Boolean,
     'created_at': TimestampField,
 }
 
