@@ -53,7 +53,7 @@ class LLMTestDB:
         with engine.connect() as con:
                 rs = con.execute(checkScoreStmt,{"userId":userId,"start":start,"end":end})
                 for row in rs:
-                    total = row[0]
+                    total = row[0] if row[0] else 0
                     break
                 if total >= max:
                     return [-1,0]
