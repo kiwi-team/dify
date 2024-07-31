@@ -1,9 +1,9 @@
 import logging
-from datetime import datetime, timezone
 
 from flask_login import current_user
 from flask_restful import reqparse
 from werkzeug.exceptions import InternalServerError, NotFound
+
 
 import services
 from controllers.console import api
@@ -27,6 +27,7 @@ from libs.helper import uuid_value
 from models.model import AppMode
 from services.app_generate_service import AppGenerateService
 from services.app_score import AppScore 
+from models.llmtestdb import LLMTestDB
 
 
 # define completion api for user
@@ -169,13 +170,14 @@ class ChatScoreApi(InstalledAppResource):
             raise NotChatAppError()
         if app_model.pass_type == 'count':
             conversationLength = AppScore.getConversationLength(conversation_id)
-            # wmtodo 需要同步积分,
             if app_model.pass_config['count'] == conversationLength:
-                return {'message':f'恭喜顺利通过，{app_model.score}积分已到账！','code':0},200
+                # wmtodo 需要同步积分,
+                code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id))
+                return {'code':code,'score':score},200
         elif app_model.pass_type == 'checkpoint':
             # 下一期做
             pass
-        return {'message':'','code':0},200
+        return {'score':0,'code':-1},200
 
 
 class ChatStartApi(InstalledAppResource):
@@ -184,8 +186,9 @@ class ChatStartApi(InstalledAppResource):
         app_mode = AppMode.value_of(app_model.mode)
         if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
             raise NotChatAppError()
-
         app_model.open_times = app_model.open_times + 1
+
+        #num  = db.session('llmtest').execute('select count(*) from User')
         db.session.commit()
         return {'result': 'success'}, 200
 api.add_resource(CompletionApi, '/installed-apps/<uuid:installed_app_id>/completion-messages', endpoint='installed_app_completion')
