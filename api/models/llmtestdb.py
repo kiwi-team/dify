@@ -1,3 +1,5 @@
+import json
+
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 from configs import dify_config
@@ -20,7 +22,8 @@ class LLMTestDB:
                 print(row)
     # 保存积分  
     @classmethod
-    def saveReward(cls,userId:str,reward:int, score:int,objectId:str):
+    def saveReward(cls,userId:str,reward:int, score:int,objectId:str,detail):
+        #userId = 'ca8870da-db70-4725-857c-4addfc716cf9'
         data = {
             "userId":userId, 
             "reward": reward, 
@@ -29,12 +32,13 @@ class LLMTestDB:
             "remark":"AI乐园获得的奖励",
             "type":1005,
             "updatedAt": getUtcNow(),
-            "createdAt": getUtcNow()
+            "createdAt": getUtcNow(),
+            "detail": json.dumps(detail)
         }
         # 2024-07-11 23:35:41.054
         statement = text("""
-        INSERT INTO public."S2Reward" ("userId",reward,score,"objectId",remark,"createdAt","updatedAt","type") VALUES
-        (:userId,:reward,:score,:objectId,:remark,:createdAt,:updatedAt,:type)
+        INSERT INTO public."S2Reward" ("userId",reward,score,"objectId",remark,"createdAt","updatedAt","type","detail") VALUES
+        (:userId,:reward,:score,:objectId,:remark,:createdAt,:updatedAt,:type,:detail)
         """)
         updateUserStmt = text("""
         UPDATE public."User" SET score = score + :score, 

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from flask_login import current_user
 from flask_restful import reqparse
 from werkzeug.exceptions import InternalServerError, NotFound
+from extensions.ext_redis import redis_client
 
 
 import services
@@ -163,6 +164,7 @@ class ChatStopApi(InstalledAppResource):
 class ChatScoreApi(InstalledAppResource):
     '''
     判断聊天是否获得积分
+    code，可以再多一些，0就是获取了积分。1是没有获取，2是达到今日上限, -1是不用弹框
     '''
     def get(self,installed_app, conversation_id):
         app_model = installed_app.app
@@ -172,12 +174,29 @@ class ChatScoreApi(InstalledAppResource):
         if app_model.pass_type == 'count':
             conversationLength = AppScore.getConversationLength(conversation_id)
             if app_model.pass_config['count'] == conversationLength:
-                # wmtodo 需要同步积分,
-                code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id))
+                query = AppScore.getConversationFirstQuery(conversation_id)[:100]
+                detail = {
+                    "subject":app_model.name+" "+query
+                }
+                code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id),detail)
                 return {'code':code,'score':score},200
         elif app_model.pass_type == 'checkpoint':
-            # 下一期做
-            pass
+            fialed_key = "dify:get_score_failed:"+conversation_id
+            if redis_client.get(fialed_key):
+                return {'score':0,'code':-1},200
+            answer = AppScore.getConversationLastAnswer(conversation_id)
+            if app_model.pass_config['success_keyword']  and app_model.pass_config['success_keyword'] in answer:
+                query = AppScore.getConversationFirstQuery(conversation_id)[:100]
+                detail = {
+                    "subject":app_model.name+" "+query
+                }
+                code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id),detail)
+                return {'code':code,'score':score},200
+            if app_model.pass_config['failed_keyword']  and app_model.pass_config['failed_keyword'] in answer:
+                # 触发退出机制
+                redis_client.set(fialed_key, 1, ex=3600)
+                return {'code':1,'score':0},200
+
         return {'score':0,'code':-1},200
 
 
