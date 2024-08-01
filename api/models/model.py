@@ -69,6 +69,7 @@ class App(db.Model):
     pass_condition = db.Column(db.String(1000),nullable=False, server_default=db.text("''::character varying")) #通关条件,给用户看的
     pass_type = db.Column(db.String(50),nullable=False,server_default=db.text("'count'::character varying")) # 通关类型count：对话次数，checkpoint: 闯关制
     pass_config = db.Column(db.JSON) # {"success_keyword":"xxx","failed_keyword":"xxx","count":20}
+    website = db.Column(db.String(500),nullable=False, server_default=db.text("''::character varying"))
     app_model_config_id = db.Column(StringUUID, nullable=True)
     workflow_id = db.Column(StringUUID, nullable=True)
     status = db.Column(db.String(255), nullable=False, server_default=db.text("'normal'::character varying"))

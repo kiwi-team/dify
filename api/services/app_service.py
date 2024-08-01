@@ -132,6 +132,7 @@ class AppService:
         app.tenant_id = tenant_id
         app.api_rph = args.get('api_rph', 0)
         app.api_rpm = args.get('api_rpm', 0)
+        app.website = args.get('website','')
 
         db.session.add(app)
         db.session.flush()
@@ -340,6 +341,7 @@ class AppService:
         app.pass_type = args.get('pass_type','')
         app.pass_config = args.get('pass_config')
         app.is_public = args.get('is_public',False)
+        app.website = args.get('website','')
         app.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
 
