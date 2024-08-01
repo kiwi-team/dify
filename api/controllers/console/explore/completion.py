@@ -181,7 +181,7 @@ class ChatScoreApi(InstalledAppResource):
                 code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id),detail)
                 return {'code':code,'score':score},200
         elif app_model.pass_type == 'checkpoint':
-            fialed_key = "dify:get_score_failed:"+conversation_id
+            fialed_key = "dify:get_score_failed:"+str(conversation_id)
             if redis_client.get(fialed_key):
                 return {'score':0,'code':-1},200
             answer = AppScore.getConversationLastAnswer(conversation_id)

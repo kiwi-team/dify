@@ -153,7 +153,7 @@ class AppApi(Resource):
         parser.add_argument('pass_type', type=str, choices=PASS_TYPES, location='json')
         parser.add_argument('pass_config', type=dict, location='json')
         parser.add_argument('is_public', type=bool, location='json')
-        parser.add_argument('website', type=str, location='json')
+        parser.add_argument('website', type=str, location='json',default='')
         args = parser.parse_args()
 
         app_service = AppService()
