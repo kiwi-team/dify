@@ -8,8 +8,8 @@ def getUtcNow():
 
 
 def getTodayUTCStartAndEnd():
-    start = (datetime.now(timezone.utc) - timedelta(days=1)).strftime('%Y-%m-%d 16:00:00.000')
-    end = (datetime.now(timezone.utc)).strftime('%Y-%m-%d 16:00:00.000')
+    start = (datetime.now(timezone.utc) + timedelta(hours=8) - timedelta(days=1)).strftime('%Y-%m-%d 16:00:00.000')
+    end = (datetime.now(timezone.utc)+timedelta(hours=8)).strftime('%Y-%m-%d 16:00:00.000')
     return [start,end]
 
 def getDateStartEnd(date:str):

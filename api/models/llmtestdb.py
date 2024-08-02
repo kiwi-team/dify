@@ -63,6 +63,7 @@ class LLMTestDB:
                     return [-1,0]
                 if total + score >= max:
                     score = max - total
+                    score = score if score > 0 else 0
                     data['score'] = score
                     todayFinish = True  # 今日的奖励领取完了
                 con.execute(statement, data)
@@ -79,3 +80,21 @@ class LLMTestDB:
             return [2,score]
         else:
             return [0,score]
+
+
+    @classmethod
+    def getTodayScore(cls,userId:str):
+        '''
+        获取今天获得的总积分
+        '''
+        [start,end]  = getTodayUTCStartAndEnd()
+        checkScoreStmt = text("""
+        SELECT sum(score) as total FROM "S2Reward" where "userId" = :userId and type = 1005 and "createdAt" >= :start and "createdAt" <= :end
+                              """)
+        total = 0
+        with engine.connect() as con:
+                rs = con.execute(checkScoreStmt,{"userId":userId,"start":start,"end":end})
+                for row in rs:
+                    total = row[0] if row[0] else 0
+                    break
+        return total
