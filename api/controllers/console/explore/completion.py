@@ -131,7 +131,7 @@ class ChatApi(InstalledAppResource):
             )
             if  conversation_id != '':
                 chat_key = 'dify:conversation_id:'+conversation_id+':'+userId
-                redis_client.set(chat_key, 1, ex=600)
+                redis_client.set(chat_key, '1', ex=600)
 
             return helper.compact_generate_response(response)
         except services.errors.conversation.ConversationNotExistsError:
@@ -179,7 +179,7 @@ class ChatScoreApi(InstalledAppResource):
         if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
             raise NotChatAppError()
         chat_key = "dify:conversation_id:"+str(conversation_id)+":"+current_user.id
-        if redis_client.get(chat_key) != 1:
+        if redis_client.get(chat_key) != '1':
             raise NotChatAppError()
         if app_model.pass_type == 'count':
             conversationLength = AppScore.getConversationLength(conversation_id)
