@@ -175,6 +175,8 @@ class ChatScoreApi(InstalledAppResource):
         if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
             raise NotChatAppError()
         chat_key = "dify:conversation_id:"+str(conversation_id)
+        print('chat_key:'+chat_key)
+        print(redis_client.get(chat_key))
         if redis_client.get(chat_key) != '1':
             raise NotChatAppError()
         if app_model.pass_type == 'count':
