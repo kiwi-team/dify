@@ -115,7 +115,7 @@ class ChatApi(InstalledAppResource):
 
         args['auto_generate_name'] = False
         conversation_id = args.get('conversation_id','')
-        if ConversationService.getLLMStatus(app_model,str(conversation_id),current_user) == 'failed':
+        if conversation_id != '' and ConversationService.getLLMStatus(app_model,str(conversation_id),current_user) == 'failed':
             raise FailedCheckpointError()
         installed_app.last_used_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
