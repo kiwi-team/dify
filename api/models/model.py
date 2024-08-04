@@ -525,6 +525,7 @@ class Conversation(db.Model):
     read_account_id = db.Column(StringUUID)
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.text('CURRENT_TIMESTAMP(0)'))
     updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text('CURRENT_TIMESTAMP(0)'))
+    llm_status = db.Column(db.String(50),nullable=False, server_default=db.text("''::character varying")) # llm新加的属性，failed闯关失败，不能再对话了。success,闯关成功
 
     messages = db.relationship("Message", backref="conversation", lazy='select', passive_deletes="all")
     message_annotations = db.relationship("MessageAnnotation", backref="conversation", lazy='select',

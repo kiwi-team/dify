@@ -17,7 +17,7 @@ from controllers.console.app.error import (
     ProviderNotInitializeError,
     ProviderQuotaExceededError,
 )
-from controllers.console.explore.error import NotChatAppError, NotCompletionAppError
+from controllers.console.explore.error import NotChatAppError, NotCompletionAppError,FailedCheckpointError
 from controllers.console.explore.wraps import InstalledAppResource
 from core.app.apps.base_app_queue_manager import AppQueueManager
 from core.app.entities.app_invoke_entities import InvokeFrom
@@ -26,9 +26,10 @@ from core.model_runtime.errors.invoke import InvokeError
 from extensions.ext_database import db
 from libs import helper
 from libs.helper import uuid_value
-from models.model import AppMode
+from models.model import AppMode,Conversation
 from services.app_generate_service import AppGenerateService
 from services.app_score import AppScore 
+from services.conversation_service import ConversationService
 from models.llmtestdb import LLMTestDB
 
 
@@ -113,7 +114,9 @@ class ChatApi(InstalledAppResource):
         args = parser.parse_args()
 
         args['auto_generate_name'] = False
-
+        conversation_id = args.get('conversation_id','')
+        if ConversationService.getLLMStatus(app_model,str(conversation_id),current_user) == 'failed':
+            raise FailedCheckpointError()
         installed_app.last_used_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
 
@@ -125,6 +128,10 @@ class ChatApi(InstalledAppResource):
                 invoke_from=InvokeFrom.EXPLORE,
                 streaming=True
             )
+            conversation_id = args.get('conversation_id','')
+            if  conversation_id != '':
+                chat_key = "dify:conversation_id:"+str(conversation_id)+":"+current_user.id
+                redis_client.set(chat_key, 1, ex=600)
 
             return helper.compact_generate_response(response)
         except services.errors.conversation.ConversationNotExistsError:
@@ -171,6 +178,9 @@ class ChatScoreApi(InstalledAppResource):
         app_mode = AppMode.value_of(app_model.mode)
         if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
             raise NotChatAppError()
+        chat_key = "dify:conversation_id:"+str(conversation_id)+":"+current_user.id
+        if redis_client.get(chat_key) != 1:
+            raise NotChatAppError()
         if app_model.pass_type == 'count':
             conversationLength = AppScore.getConversationLength(conversation_id)
             if app_model.pass_config['count'] == conversationLength:
@@ -184,6 +194,8 @@ class ChatScoreApi(InstalledAppResource):
             fialed_key = "dify:get_score_failed:"+str(conversation_id)
             if redis_client.get(fialed_key):
                 return {'score':0,'code':-1},200
+            if ConversationService.getLLMStatus(app_model,str(conversation_id),current_user) == 'failed':
+                raise FailedCheckpointError()
             answer = AppScore.getConversationLastAnswer(conversation_id)
             if app_model.pass_config['success_keyword']  and app_model.pass_config['success_keyword'] in answer:
                 query = AppScore.getConversationFirstQuery(conversation_id)[:100]
@@ -191,12 +203,15 @@ class ChatScoreApi(InstalledAppResource):
                     "subject":app_model.name+" "+query
                 }
                 code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id),detail)
+                ConversationService.setLLMStatus(app_model,str(conversation_id),current_user,'success')
                 return {'code':code,'score':score},200
             if app_model.pass_config['failed_keyword']  and app_model.pass_config['failed_keyword'] in answer:
                 # 触发退出机制
+                ConversationService.setLLMStatus(app_model,str(conversation_id),current_user,'failed')
                 redis_client.set(fialed_key, 1, ex=3600)
                 return {'code':1,'score':0},200
 
+        redis_client.delete(chat_key)
         return {'score':0,'code':-1},200
 
 

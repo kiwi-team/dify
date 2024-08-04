@@ -130,3 +130,16 @@ class ConversationService:
 
         conversation.is_deleted = True
         db.session.commit()
+    
+    @classmethod
+    def setLLMStatus(cls,app_model: App, conversation_id: str, user: Optional[Union[Account, EndUser]],llm_status:str):
+        conversation = cls.get_conversation(app_model, conversation_id, user)
+
+        conversation.llm_status = llm_status
+        db.session.commit()
+
+    @classmethod
+    def getLLMStatus(cls,app_model: App, conversation_id: str, user: Optional[Union[Account, EndUser]]):
+        conversation = cls.get_conversation(app_model, conversation_id, user)
+
+        return conversation.llm_status

@@ -15,3 +15,4 @@ class AppScore:
     def getConversationLastAnswer(cls,conversation_id: str):
         conversation = db.session.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.created_at.desc()).first()
         return conversation.answer if conversation else ""
+    
