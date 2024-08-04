@@ -119,7 +119,6 @@ class ChatApi(InstalledAppResource):
             raise FailedCheckpointError()
         installed_app.last_used_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
-        userId = current_user.id
 
         try:
             response = AppGenerateService.generate(
@@ -129,9 +128,6 @@ class ChatApi(InstalledAppResource):
                 invoke_from=InvokeFrom.EXPLORE,
                 streaming=True
             )
-            if  conversation_id != '':
-                chat_key = 'dify:conversation_id:'+conversation_id+':'+userId
-                redis_client.set(chat_key, '1', ex=600)
 
             return helper.compact_generate_response(response)
         except services.errors.conversation.ConversationNotExistsError:

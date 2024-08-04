@@ -29,6 +29,7 @@ from models.account import Account
 from models.model import App, AppMode, AppModelConfig, Conversation, EndUser, Message, MessageFile
 from services.errors.app_model_config import AppModelConfigBrokenError
 from services.errors.conversation import ConversationCompletedError, ConversationNotExistsError
+from extensions.ext_redis import redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +219,8 @@ class MessageBasedAppGenerator(BaseAppGenerator):
             from_account_id=account_id
         )
 
+        chat_key = 'dify:conversation_id:'+conversation.id+':'+application_generate_entity.user_id
+        redis_client.set(chat_key, '1', ex=600)
         db.session.add(message)
         db.session.commit()
         db.session.refresh(message)
