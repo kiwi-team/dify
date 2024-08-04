@@ -219,7 +219,7 @@ class MessageBasedAppGenerator(BaseAppGenerator):
             from_account_id=account_id
         )
 
-        chat_key = 'dify:conversation_id:'+conversation.id+':'+application_generate_entity.user_id
+        chat_key = 'dify:conversation_id:'+conversation.id
         redis_client.set(chat_key, '1', ex=600)
         db.session.add(message)
         db.session.commit()
