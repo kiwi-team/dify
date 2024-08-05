@@ -47,15 +47,15 @@ jobs:
       #with:
       env:
         # Private Key
-        SSH_PRIVATE_KEY: ${{secrets.TEST_SERVER_KEY}}
+        SSH_PRIVATE_KEY: ${{secrets.SERVER_KEY}}
         # Remote host
         #REMOTE_HOST: "106.14.36.230"
-        REMOTE_HOST: ${{ secrets.TEST_SERVER_HOST }}
+        REMOTE_HOST: ${{ secrets.SERVER_HOST }}
         # Remote user
-        REMOTE_USER: ${{ secrets.TEST_SERVER_USER }}
+        REMOTE_USER: ${{ secrets.SERVER_USER }}
         #REMOTE_USER: "www"
         # Remote port$
-        REMOTE_PORT: ${{ secrets.TEST_SERVER_PORT }}
+        REMOTE_PORT: ${{ secrets.SERVER_PORT }}
         #REMOTE_PORT: 22
         # Source directory
         #ARGS: "-rltgoDzvO --delete"
