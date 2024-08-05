@@ -74,6 +74,6 @@ jobs:
         script: |
           cd /data/www/dify/api
           docker build -t difyapi:v2 .
-          docker compose down
-          docker compose up -d
+          docker-compose down
+          docker-compose up -d
           docker images | grep none | awk '{print $3}' | xargs docker rmi 
