@@ -63,6 +63,13 @@ class App(db.Model):
     mode = db.Column(db.String(255), nullable=False)
     icon = db.Column(db.String(255))
     icon_background = db.Column(db.String(255))
+    cover = db.Column(db.String(500),nullable=False, server_default=db.text("''::character varying")) # 封面
+    score = db.Column(db.Integer,nullable=False, server_default=db.text('0')) # 通关积分
+    open_times= db.Column(db.Integer,nullable=False, server_default=db.text('0')) # 热度(打开次数)
+    pass_condition = db.Column(db.String(1000),nullable=False, server_default=db.text("''::character varying")) #通关条件,给用户看的
+    pass_type = db.Column(db.String(50),nullable=False,server_default=db.text("'count'::character varying")) # 通关类型count：对话次数，checkpoint: 闯关制
+    pass_config = db.Column(db.JSON) # {"success_keyword":"xxx","failed_keyword":"xxx","count":20}
+    website = db.Column(db.String(500),nullable=False, server_default=db.text("''::character varying"))
     app_model_config_id = db.Column(StringUUID, nullable=True)
     workflow_id = db.Column(StringUUID, nullable=True)
     status = db.Column(db.String(255), nullable=False, server_default=db.text("'normal'::character varying"))
@@ -200,6 +207,13 @@ class App(db.Model):
         ).all()
 
         return tags if tags else []
+    
+    @property
+    def cover_image(self):
+         sign_url = ""
+         if self.cover != "": 
+             sign_url = UploadFileParser.get_signed_temp_image_url(self.cover)
+         return sign_url
 
 
 class AppModelConfig(db.Model):
@@ -511,6 +525,7 @@ class Conversation(db.Model):
     read_account_id = db.Column(StringUUID)
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.text('CURRENT_TIMESTAMP(0)'))
     updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text('CURRENT_TIMESTAMP(0)'))
+    llm_status = db.Column(db.String(50),nullable=False, server_default=db.text("''::character varying")) # llm新加的属性，failed闯关失败，不能再对话了。success,闯关成功
 
     messages = db.relationship("Message", backref="conversation", lazy='select', passive_deletes="all")
     message_annotations = db.relationship("MessageAnnotation", backref="conversation", lazy='select',

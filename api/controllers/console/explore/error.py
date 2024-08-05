@@ -23,3 +23,9 @@ class AppSuggestedQuestionsAfterAnswerDisabledError(BaseHTTPException):
     error_code = 'app_suggested_questions_after_answer_disabled'
     description = "Function Suggested questions after answer disabled."
     code = 403
+
+
+class FailedCheckpointError(BaseHTTPException):
+    error_code = 'failed_checkpoint'
+    description = "this conversation is stoped"
+    code = 400

@@ -165,7 +165,6 @@ def compact_generate_response(response: Union[dict, Generator]) -> Response:
     else:
         def generate() -> Generator:
             yield from response
-
         return Response(stream_with_context(generate()), status=200,
                         mimetype='text/event-stream')
 

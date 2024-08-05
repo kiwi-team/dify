@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from flask_login import current_user
 from flask_restful import reqparse
 from werkzeug.exceptions import InternalServerError, NotFound
+from extensions.ext_redis import redis_client
+
 
 import services
 from controllers.console import api
@@ -15,7 +17,7 @@ from controllers.console.app.error import (
     ProviderNotInitializeError,
     ProviderQuotaExceededError,
 )
-from controllers.console.explore.error import NotChatAppError, NotCompletionAppError
+from controllers.console.explore.error import NotChatAppError, NotCompletionAppError,FailedCheckpointError
 from controllers.console.explore.wraps import InstalledAppResource
 from core.app.apps.base_app_queue_manager import AppQueueManager
 from core.app.entities.app_invoke_entities import InvokeFrom
@@ -24,8 +26,11 @@ from core.model_runtime.errors.invoke import InvokeError
 from extensions.ext_database import db
 from libs import helper
 from libs.helper import uuid_value
-from models.model import AppMode
+from models.model import AppMode,Conversation
 from services.app_generate_service import AppGenerateService
+from services.app_score import AppScore 
+from services.conversation_service import ConversationService
+from models.llmtestdb import LLMTestDB
 
 
 # define completion api for user
@@ -109,7 +114,9 @@ class ChatApi(InstalledAppResource):
         args = parser.parse_args()
 
         args['auto_generate_name'] = False
-
+        conversation_id = args.get('conversation_id','')
+        if conversation_id != '' and ConversationService.getLLMStatus(app_model,str(conversation_id),current_user) == 'failed':
+            raise FailedCheckpointError()
         installed_app.last_used_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
 
@@ -157,7 +164,68 @@ class ChatStopApi(InstalledAppResource):
         return {'result': 'success'}, 200
 
 
+class ChatScoreApi(InstalledAppResource):
+    '''
+    判断聊天是否获得积分
+    code，可以再多一些，0就是获取了积分。1是没有获取，2是达到今日上限, -1是不用弹框
+    '''
+    def get(self,installed_app, conversation_id):
+        app_model = installed_app.app
+        app_mode = AppMode.value_of(app_model.mode)
+        if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
+            raise NotChatAppError()
+        chat_key = "dify:conversation_id:"+str(conversation_id)
+        # redis get的是bstring，不是string
+        if redis_client.get(chat_key) is None:
+            raise NotChatAppError()
+        if app_model.pass_type == 'count':
+            conversationLength = AppScore.getConversationLength(conversation_id)
+            if app_model.pass_config['count'] == conversationLength:
+                query = AppScore.getConversationFirstQuery(conversation_id)[:100]
+                detail = {
+                    "subject":app_model.name+" "+query
+                }
+                code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id),detail)
+                return {'code':code,'score':score},200
+        elif app_model.pass_type == 'checkpoint':
+            fialed_key = "dify:get_score_failed:"+str(conversation_id)
+            if redis_client.get(fialed_key):
+                return {'score':0,'code':-1},200
+            if ConversationService.getLLMStatus(app_model,str(conversation_id),current_user) == 'failed':
+                raise FailedCheckpointError()
+            answer = AppScore.getConversationLastAnswer(conversation_id)
+            if app_model.pass_config['success_keyword']  and app_model.pass_config['success_keyword'] in answer:
+                query = AppScore.getConversationFirstQuery(conversation_id)[:100]
+                detail = {
+                    "subject":app_model.name+" "+query
+                }
+                code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id),detail)
+                ConversationService.setLLMStatus(app_model,str(conversation_id),current_user,'success')
+                return {'code':code,'score':score},200
+            if app_model.pass_config['failed_keyword']  and app_model.pass_config['failed_keyword'] in answer:
+                # 触发退出机制
+                ConversationService.setLLMStatus(app_model,str(conversation_id),current_user,'failed')
+                redis_client.set(fialed_key, 1, ex=3600)
+                return {'code':1,'score':0},200
+
+        redis_client.delete(chat_key)
+        return {'score':0,'code':-1},200
+
+
+class ChatStartApi(InstalledAppResource):
+    def get(self,installed_app):
+        app_model = installed_app.app
+        app_mode = AppMode.value_of(app_model.mode)
+        if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
+            raise NotChatAppError()
+        app_model.open_times = app_model.open_times + 1
+
+        #num  = db.session('llmtest').execute('select count(*) from User')
+        db.session.commit()
+        return {'result': 'success'}, 200
 api.add_resource(CompletionApi, '/installed-apps/<uuid:installed_app_id>/completion-messages', endpoint='installed_app_completion')
 api.add_resource(CompletionStopApi, '/installed-apps/<uuid:installed_app_id>/completion-messages/<string:task_id>/stop', endpoint='installed_app_stop_completion')
 api.add_resource(ChatApi, '/installed-apps/<uuid:installed_app_id>/chat-messages', endpoint='installed_app_chat_completion')
+api.add_resource(ChatScoreApi, '/installed-apps/<uuid:installed_app_id>/score/<uuid:conversation_id>')
+api.add_resource(ChatStartApi, '/installed-apps/<uuid:installed_app_id>/chat-start')
 api.add_resource(ChatStopApi, '/installed-apps/<uuid:installed_app_id>/chat-messages/<string:task_id>/stop', endpoint='installed_app_stop_chat_completion')

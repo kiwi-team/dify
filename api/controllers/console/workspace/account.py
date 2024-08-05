@@ -22,6 +22,7 @@ from libs.login import login_required
 from models.account import AccountIntegrate, InvitationCode
 from services.account_service import AccountService
 from services.errors.account import CurrentPasswordIncorrectError as ServiceCurrentPasswordIncorrectError
+from models.llmtestdb import LLMTestDB
 
 
 class AccountInitApi(Resource):
@@ -245,7 +246,11 @@ class AccountIntegrateApi(Resource):
         return {'data': integrate_data}
 
 
-
+class AccountAIScoreApi(Resource):
+    def get(self):
+        account = current_user
+        score = LLMTestDB.getTodayScore(account.id)
+        return {'score':score},200
 
 # Register API resources
 api.add_resource(AccountInitApi, '/account/init')
@@ -257,5 +262,6 @@ api.add_resource(AccountInterfaceThemeApi, '/account/interface-theme')
 api.add_resource(AccountTimezoneApi, '/account/timezone')
 api.add_resource(AccountPasswordApi, '/account/password')
 api.add_resource(AccountIntegrateApi, '/account/integrates')
+api.add_resource(AccountAIScoreApi, '/account/today-ai-score')
 # api.add_resource(AccountEmailApi, '/account/email')
 # api.add_resource(AccountEmailVerifyApi, '/account/email-verify')

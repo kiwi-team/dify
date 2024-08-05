@@ -1,11 +1,13 @@
 # base image
 FROM python:3.10-slim-bookworm AS base
+# https://mirrors.tuna.tsinghua.edu.cn/help/debian/
+COPY ./debian.sources  /etc/apt/sources.list.d/
 
 WORKDIR /app/api
 
 # Install Poetry
 ENV POETRY_VERSION=1.8.3
-RUN pip install --no-cache-dir poetry==${POETRY_VERSION}
+RUN pip install --no-cache-dir poetry==${POETRY_VERSION} poetry-plugin-pypi-mirror
 
 # Configure Poetry
 ENV POETRY_CACHE_DIR=/tmp/poetry_cache
@@ -20,6 +22,8 @@ RUN apt-get update \
 
 # Install Python dependencies
 COPY pyproject.toml poetry.lock ./
+ENV POETRY_PYPI_MIRROR_URL=https://pypi.tuna.tsinghua.edu.cn/simple/
+ENV REQUESTS_TIMEOUT=3000
 RUN poetry install --sync --no-cache --no-root
 
 # production stage

@@ -8,6 +8,7 @@ if [[ "${MIGRATION_ENABLED}" == "true" ]]; then
 fi
 
 if [[ "${MODE}" == "worker" ]]; then
+ #  poetry run python -m celery -A app.celery worker -P gevent -c 1 --loglevel INFO -Q dataset,generation,mail,ops_trace,app_deletion
   celery -A app.celery worker -P ${CELERY_WORKER_CLASS:-gevent} -c ${CELERY_WORKER_AMOUNT:-1} --loglevel INFO \
     -Q ${CELERY_QUEUES:-dataset,generation,mail,ops_trace,app_deletion}
 elif [[ "${MODE}" == "beat" ]]; then
