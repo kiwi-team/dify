@@ -180,21 +180,28 @@ class ChatScoreApi(InstalledAppResource):
             raise NotChatAppError()
         if app_model.pass_type == 'count':
             conversationLength = AppScore.getConversationLength(conversation_id)
-            if app_model.pass_config['count'] == conversationLength:
+            if  app_model.pass_config['count'] == conversationLength:
+                llmStatus = ConversationService.getLLMStatus(app_model,str(conversation_id),current_user)
+                if llmStatus == 'success':
+                    return {'code':0,'score':-1},200
                 query = AppScore.getConversationFirstQuery(conversation_id)[:100]
                 detail = {
                     "subject":app_model.name+" "+query
                 }
                 code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id),detail)
+                ConversationService.setLLMStatus(app_model,str(conversation_id),current_user,'success')
                 return {'code':code,'score':score},200
         elif app_model.pass_type == 'checkpoint':
             fialed_key = "dify:get_score_failed:"+str(conversation_id)
             if redis_client.get(fialed_key):
                 return {'score':0,'code':-1},200
-            if ConversationService.getLLMStatus(app_model,str(conversation_id),current_user) == 'failed':
+            llmStatus = ConversationService.getLLMStatus(app_model,str(conversation_id),current_user)
+            if llmStatus == 'failed':
                 raise FailedCheckpointError()
             answer = AppScore.getConversationLastAnswer(conversation_id)
             if app_model.pass_config['success_keyword']  and app_model.pass_config['success_keyword'] in answer:
+                if llmStatus == 'success':
+                    return {'code':0,'score':-1},200
                 query = AppScore.getConversationFirstQuery(conversation_id)[:100]
                 detail = {
                     "subject":app_model.name+" "+query
