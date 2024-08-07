@@ -347,11 +347,13 @@ class ModelProviderAvailableModelApi(Resource):
     def get(self, model_type):
         tenant_id = current_user.current_tenant_id
 
-        model_provider_service = ModelProviderService()
-        models = model_provider_service.get_models_by_model_type(
-            tenant_id=tenant_id,
-            model_type=model_type
-        )
+        models = []
+        if current_user.is_admin_or_owner:
+            model_provider_service = ModelProviderService()
+            models = model_provider_service.get_models_by_model_type(
+                tenant_id=tenant_id,
+                model_type=model_type
+            )
 
         return jsonable_encoder({
             "data": models

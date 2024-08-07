@@ -85,7 +85,7 @@ app_partial_fields = {
     'hot': fields.String,
     'score': fields.Integer,
     'is_public': fields.Boolean,
-    'model_config': fields.Nested(model_config_partial_fields, attribute='app_model_config', allow_null=True),
+    #'model_config': fields.Nested(model_config_partial_fields, attribute='app_model_config', allow_null=True),
     'created_at': TimestampField,
     'tags': fields.List(fields.Nested(tag_fields))
 }

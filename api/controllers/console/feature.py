@@ -16,7 +16,10 @@ class FeatureApi(Resource):
     @account_initialization_required
     @cloud_utm_record
     def get(self):
-        return FeatureService.get_features(current_user.current_tenant_id).model_dump()
+        if current_user.is_admin_or_owner:
+            return FeatureService.get_features(current_user.current_tenant_id).model_dump()
+        else:
+            return {'billing':{'enabled':False}} 
 
 
 class SystemFeatureApi(Resource):
