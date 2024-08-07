@@ -15,7 +15,8 @@ class VersionApi(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('current_version', type=str, required=True, location='args')
         args = parser.parse_args()
-        check_update_url = current_app.config['CHECK_UPDATE_URL']
+        #check_update_url = current_app.config['CHECK_UPDATE_URL']
+        check_update_url = ""
 
         result = {
             'version': current_app.config['CURRENT_VERSION'],
