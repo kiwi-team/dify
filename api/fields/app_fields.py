@@ -82,6 +82,7 @@ app_partial_fields = {
     'pass_condition': fields.String,
     'website': fields.String,
     'open_times': fields.String,
+    'hot': fields.String,
     'score': fields.Integer,
     'is_public': fields.Boolean,
     'model_config': fields.Nested(model_config_partial_fields, attribute='app_model_config', allow_null=True),

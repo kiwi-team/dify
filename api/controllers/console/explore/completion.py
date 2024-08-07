@@ -118,6 +118,9 @@ class ChatApi(InstalledAppResource):
         if conversation_id != '' and ConversationService.getLLMStatus(app_model,str(conversation_id),current_user) == 'failed':
             raise FailedCheckpointError()
         installed_app.last_used_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        if app_model.hot == 0 or app_model.hot == '0':
+            app_model.hot = AppScore.getHot(app_model.id)
+        app_model.hot = app_model.hot + 1
         db.session.commit()
 
         try:
@@ -128,7 +131,6 @@ class ChatApi(InstalledAppResource):
                 invoke_from=InvokeFrom.EXPLORE,
                 streaming=True
             )
-
             return helper.compact_generate_response(response)
         except services.errors.conversation.ConversationNotExistsError:
             raise NotFound("Conversation Not Exists.")
@@ -230,6 +232,7 @@ class ChatStartApi(InstalledAppResource):
         #num  = db.session('llmtest').execute('select count(*) from User')
         db.session.commit()
         return {'result': 'success'}, 200
+
 api.add_resource(CompletionApi, '/installed-apps/<uuid:installed_app_id>/completion-messages', endpoint='installed_app_completion')
 api.add_resource(CompletionStopApi, '/installed-apps/<uuid:installed_app_id>/completion-messages/<string:task_id>/stop', endpoint='installed_app_stop_completion')
 api.add_resource(ChatApi, '/installed-apps/<uuid:installed_app_id>/chat-messages', endpoint='installed_app_chat_completion')
