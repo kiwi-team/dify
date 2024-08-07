@@ -16,3 +16,7 @@ class AppScore:
         conversation = db.session.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.created_at.desc()).first()
         return conversation.answer if conversation else ""
     
+    @classmethod
+    def getHot(cls,app_id:str):
+        return db.session.query(Message).filter(Message.app_id == app_id).count()
+    
