@@ -98,3 +98,14 @@ class LLMTestDB:
                     total = row[0] if row[0] else 0
                     break
         return total
+
+
+    @classmethod
+    def getGuest(cls,userId:str):
+        guest = 0
+        with engine.connect() as con:
+            rs = con.execute(text('SELECT uid,guest,status FROM "User" where uid = :userId'),{"userId":userId})
+            for row in rs:
+                guest = row[1]
+                break
+        return guest
