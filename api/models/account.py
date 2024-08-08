@@ -5,6 +5,7 @@ from flask_login import UserMixin
 
 from extensions.ext_database import db
 from models import StringUUID
+from models.llmtestdb import LLMTestDB
 
 
 class AccountStatus(str, enum.Enum):
@@ -121,6 +122,10 @@ class Account(UserMixin, db.Model):
     @property
     def is_dataset_operator(self):
         return self._current_tenant.current_role == TenantAccountRole.DATASET_OPERATOR
+    
+    @property
+    def is_guest(self):
+        return LLMTestDB.getGuest(self.id)
 
 class TenantStatus(str, enum.Enum):
     NORMAL = 'normal'

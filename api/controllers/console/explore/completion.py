@@ -185,7 +185,7 @@ class ChatScoreApi(InstalledAppResource):
             if  app_model.pass_config['count'] == conversationLength:
                 llmStatus = ConversationService.getLLMStatus(app_model,str(conversation_id),current_user)
                 if llmStatus == 'success':
-                    return {'code':0,'score':-1},200
+                    return {'code':-1,'score':0},200
                 query = AppScore.getConversationFirstQuery(conversation_id)[:100]
                 detail = {
                     "subject":app_model.name+" "+query
@@ -203,7 +203,7 @@ class ChatScoreApi(InstalledAppResource):
             answer = AppScore.getConversationLastAnswer(conversation_id)
             if app_model.pass_config['success_keyword']  and app_model.pass_config['success_keyword'] in answer:
                 if llmStatus == 'success':
-                    return {'code':0,'score':-1},200
+                    return {'code':-1,'score':0},200
                 query = AppScore.getConversationFirstQuery(conversation_id)[:100]
                 detail = {
                     "subject":app_model.name+" "+query
