@@ -26,9 +26,11 @@ from services.tag_service import TagService
 from services.workflow_service import WorkflowService
 from tasks.remove_app_and_related_data_task import remove_app_and_related_data_task
 
+from models.llmtestdb import LLMTestDB
+
 
 class AppService:
-    def get_paginate_apps(self, tenant_id: str, args: dict) -> Pagination | None:
+    def get_paginate_apps(self, tenant_id: str, args: dict, opts: dict = None) -> Pagination | None:
         """
         Get app list with pagination
         :param tenant_id: tenant id
@@ -39,6 +41,12 @@ class AppService:
             App.tenant_id == tenant_id,
             App.is_universal == False
         ]
+
+        if opts:
+            if opts.get('review_status') is not None:
+                filters.append(App.review_status == opts['review_status'])
+            if opts.get('user_id') is not None:
+                filters.append(App.user_id == opts['user_id'])
 
         if args['mode'] == 'workflow':
             filters.append(App.mode.in_([AppMode.WORKFLOW.value, AppMode.COMPLETION.value]))
@@ -67,6 +75,9 @@ class AppService:
             per_page=args['limit'],
             error_out=False
         )
+
+        for app in app_models.items:
+            app.user_nickname = LLMTestDB.get_user_nickname(app.user_id)
 
         return app_models
 
@@ -132,7 +143,8 @@ class AppService:
         app.tenant_id = tenant_id
         app.api_rph = args.get('api_rph', 0)
         app.api_rpm = args.get('api_rpm', 0)
-        app.website = args.get('website','')
+        app.website = args.get('website', '')
+        app.user_id = args.get('user_id', '')
 
         db.session.add(app)
         db.session.flush()
@@ -148,6 +160,10 @@ class AppService:
         db.session.commit()
 
         app_was_created.send(app, account=account)
+
+        res = LLMTestDB.createAppReview(app.id, app.user_id)
+        if not res:
+            return None
 
         return app
 
@@ -342,6 +358,8 @@ class AppService:
         app.pass_config = args.get('pass_config')
         app.is_public = args.get('is_public',False)
         app.website = args.get('website','')
+        app.review_status = args.get('review_status')
+        app.review_remark = args.get('review_remark')
         app.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
 
