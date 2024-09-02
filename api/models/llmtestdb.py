@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
@@ -7,6 +8,14 @@ from libs.date import getUtcNow,getTodayUTCStartAndEnd
 
 engine = create_engine(dify_config.BIND_DB1)
 class LLMTestDB:
+    @classmethod
+    def get_user_nickname(cls, user_id: str) -> str:
+        with engine.connect() as con:
+            rs = con.execute(text('SELECT nickname FROM "User" WHERE uid = :user_id'), {"user_id": user_id})
+            for row in rs:
+                return row[0]
+        return ""
+
     @classmethod
     def printUser(cls):
         with engine.connect() as con:
@@ -109,3 +118,18 @@ class LLMTestDB:
                 guest = row[1]
                 break
         return guest
+    
+    @classmethod
+    def createAppReview(cls, appId: str, userId: str):
+        """
+        创建应用审核日志
+        """
+        logId = str(uuid.uuid4())
+        createAppReviewStmt = text("""
+        INSERT INTO public."ApplicationReviewLog" ("appId", "logId", "userId") VALUES (:appId, :logId, :userId)
+        """)
+        with engine.connect() as con:
+            rs = con.execute(createAppReviewStmt, {"appId": appId, "logId":logId, "userId":userId})
+            con.commit()
+
+        return rs.rowcount > 0

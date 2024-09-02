@@ -15,12 +15,103 @@ from fields.app_fields import (
     app_detail_fields_with_site,
     app_pagination_fields,
     app_basic_detail_fields,
+    app_pagination_with_review_fields,
 )
 from libs.login import login_required
 from services.app_service import AppService
 
 ALLOW_CREATE_APP_MODES = ['chat', 'agent-chat', 'advanced-chat', 'workflow', 'completion']
 PASS_TYPES = ['count','checkpoint']
+
+class AppListByReviewerApi(Resource):
+    @setup_required
+    @login_required
+    @account_initialization_required
+    def get(self):
+        """Get app list by reviewer"""
+        def uuid_list(value):
+            try:
+                return [str(uuid.UUID(v)) for v in value.split(',')]
+            except ValueError:
+                abort(400, message="Invalid UUID format in tag_ids.")
+        parser = reqparse.RequestParser()
+        parser.add_argument('page', type=inputs.int_range(1, 99999), required=False, default=1, location='args')
+        parser.add_argument('limit', type=inputs.int_range(1, 100), required=False, default=20, location='args')
+        parser.add_argument('mode', type=str, choices=['chat', 'workflow', 'agent-chat', 'channel', 'all'], default='all', location='args', required=False)
+        parser.add_argument('name', type=str, location='args', required=False)
+        parser.add_argument('tag_ids', type=uuid_list, location='args', required=False)
+        parser.add_argument('review_status', type=int, location='args', required=True)
+        args = parser.parse_args()
+
+        # get app list
+        app_service = AppService()
+        app_pagination = app_service.get_paginate_apps(current_user.current_tenant_id, args, {
+            'review_status': args['review_status']
+        })
+        if not app_pagination:
+            return {'data': [], 'total': 0, 'page': 1, 'limit': 20, 'has_more': False}
+
+        return marshal(app_pagination, app_pagination_with_review_fields)
+
+class AppListByUserApi(Resource):
+    @setup_required
+    @login_required
+    @account_initialization_required
+    def get(self):
+        """Get app list by user"""
+        def uuid_list(value):
+            try:
+                return [str(uuid.UUID(v)) for v in value.split(',')]
+            except ValueError:
+                abort(400, message="Invalid UUID format in tag_ids.")
+        parser = reqparse.RequestParser()
+        parser.add_argument('page', type=inputs.int_range(1, 99999), required=False, default=1, location='args')
+        parser.add_argument('limit', type=inputs.int_range(1, 100), required=False, default=20, location='args')
+        parser.add_argument('mode', type=str, choices=['chat', 'workflow', 'agent-chat', 'channel', 'all'], default='all', location='args', required=False)
+        parser.add_argument('name', type=str, location='args', required=False)
+        parser.add_argument('tag_ids', type=uuid_list, location='args', required=False)
+        parser.add_argument('user_id', type=str, location='args', required=True)
+        args = parser.parse_args()
+
+        # get app list
+        app_service = AppService()
+        app_pagination = app_service.get_paginate_apps(current_user.current_tenant_id, args, {
+            'user_id': args['user_id']
+        })
+        if not app_pagination:
+            return {'data': [], 'total': 0, 'page': 1, 'limit': 20, 'has_more': False}
+        
+        return marshal(app_pagination, app_pagination_with_review_fields)
+
+class AppReviewedListApi(Resource):
+    @setup_required
+    @login_required
+    @account_initialization_required
+    def get(self):
+        """Get reviewed app list"""
+        def uuid_list(value):
+            try:
+                return [str(uuid.UUID(v)) for v in value.split(',')]
+            except ValueError:
+                abort(400, message="Invalid UUID format in tag_ids.")
+        parser = reqparse.RequestParser()
+        parser.add_argument('page', type=inputs.int_range(1, 99999), required=False, default=1, location='args')
+        parser.add_argument('limit', type=inputs.int_range(1, 100), required=False, default=20, location='args')
+        parser.add_argument('mode', type=str, choices=['chat', 'workflow', 'agent-chat', 'channel', 'all'], default='all', location='args', required=False)
+        parser.add_argument('name', type=str, location='args', required=False)
+        parser.add_argument('tag_ids', type=uuid_list, location='args', required=False)
+
+        args = parser.parse_args()
+
+        # get app list
+        app_service = AppService()
+        app_pagination = app_service.get_paginate_apps(current_user.current_tenant_id, args, {
+            'review_status': 1
+        })
+        if not app_pagination:
+            return {'data': [], 'total': 0, 'page': 1, 'limit': 20, 'has_more': False}
+
+        return marshal(app_pagination, app_pagination_fields)
 
 
 class AppListApi(Resource):
@@ -72,19 +163,22 @@ class AppListApi(Resource):
         parser.add_argument('pass_config', type=dict, location='json')
         parser.add_argument('is_public', type=bool, location='json')
         parser.add_argument('website', type=str, location='json')
+        parser.add_argument('user_id', type=str, location='json')
 
         args = parser.parse_args()
 
         # The role of the current user in the ta table must be admin, owner, or editor
-        if not current_user.is_editor:
-            raise Forbidden()
+        # TODO: 需要校验权限
+        # if not current_user.is_editor:
+        #     raise Forbidden()
 
         if 'mode' not in args or args['mode'] is None:
             raise BadRequest("mode is required")
 
         app_service = AppService()
         app = app_service.create_app(current_user.current_tenant_id, args, current_user)
-
+        if not app:
+            raise BadRequest("create app failed")
         return app, 201
 
 
@@ -154,6 +248,8 @@ class AppApi(Resource):
         parser.add_argument('pass_config', type=dict, location='json')
         parser.add_argument('is_public', type=bool, location='json')
         parser.add_argument('website', type=str, location='json',default='')
+        parser.add_argument('review_status', type=int, location='json')
+        parser.add_argument('review_remark', type=str, location='json')
         args = parser.parse_args()
 
         app_service = AppService()
@@ -354,7 +450,9 @@ class AppTraceApi(Resource):
 
         return {"result": "success"}
 
-
+api.add_resource(AppListByReviewerApi, '/apps/reviewer')
+api.add_resource(AppListByUserApi, '/apps/user')
+api.add_resource(AppReviewedListApi, '/apps/reviewed')
 api.add_resource(AppListApi, '/apps')
 api.add_resource(AppImportApi, '/apps/import')
 api.add_resource(AppApi, '/apps/<uuid:app_id>')
