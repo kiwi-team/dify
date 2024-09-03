@@ -30,7 +30,7 @@ PREVIEW_WORDS_LIMIT = 3000
 class FileService:
 
     @staticmethod
-    def upload_file(file: FileStorage, user: Union[Account, EndUser], only_image: bool = False) -> UploadFile:
+    def upload_file(file: FileStorage, user: Union[Account, EndUser], only_image: bool = False):
         filename = file.filename
         extension = file.filename.split('.')[-1]
         if len(filename) > 200:
@@ -71,6 +71,7 @@ class FileService:
 
         # save file to storage
         storage.save(file_key, file_content)
+ 
 
         # save file to db
         upload_file = UploadFile(
