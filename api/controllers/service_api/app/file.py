@@ -1,3 +1,4 @@
+from core.file.upload_file_parser import UploadFileParser
 from flask import request
 from flask_restful import Resource, marshal_with
 
@@ -34,13 +35,22 @@ class FileApi(Resource):
             raise TooManyFilesError()
 
         try:
-            upload_file = FileService.upload_file(file, end_user)
+            upload_upload = FileService.upload_file(file, end_user)
         except services.errors.file.FileTooLargeError as file_too_large_error:
             raise FileTooLargeError(file_too_large_error.description)
         except services.errors.file.UnsupportedFileTypeError:
             raise UnsupportedFileTypeError()
 
-        return upload_file, 201
+        return {
+            'id': upload_upload.id,
+            'url': upload_upload.url,
+            'name': upload_upload.name,
+            'size': upload_upload.size,
+            'extension': upload_upload.extension,
+            'mime_type': upload_upload.mime_type,
+            'created_at': upload_upload.created_at,
+            'created_by': upload_upload.created_by,
+        }, 201
 
 
 api.add_resource(FileApi, '/files/upload')

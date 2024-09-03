@@ -40,7 +40,7 @@ class AppListByReviewerApi(Resource):
         parser.add_argument('mode', type=str, choices=['chat', 'workflow', 'agent-chat', 'channel', 'all'], default='all', location='args', required=False)
         parser.add_argument('name', type=str, location='args', required=False)
         parser.add_argument('tag_ids', type=uuid_list, location='args', required=False)
-        parser.add_argument('review_status', type=int, location='args', required=True)
+        parser.add_argument('review_status', type=int, location='args', required=False)
         args = parser.parse_args()
 
         # get app list

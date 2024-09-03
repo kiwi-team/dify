@@ -1186,6 +1186,10 @@ class UploadFile(db.Model):
     used_at = db.Column(db.DateTime, nullable=True)
     hash = db.Column(db.String(255), nullable=True)
 
+    @property
+    def url(self):
+        return UploadFileParser.get_signed_temp_image_url(self.id)
+
 
 class ApiRequest(db.Model):
     __tablename__ = 'api_requests'
