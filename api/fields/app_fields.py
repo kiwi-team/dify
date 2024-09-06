@@ -69,6 +69,38 @@ tag_fields = {
     'type': fields.String
 }
 
+app_partial_with_review_fields = {
+    'id': fields.String,
+    'name': fields.String,
+    'max_active_requests': fields.Raw(),
+    'description': fields.String(attribute='desc_or_prompt'),
+    'mode': fields.String(attribute='mode_compatible_with_agent'),
+    'icon': fields.String,
+    'icon_background': fields.String,
+    'cover': fields.String,
+    'cover_image': fields.String,
+    'pass_condition': fields.String,
+    'website': fields.String,
+    'open_times': fields.String,
+    'hot': fields.String,
+    'score': fields.Integer,
+    'is_public': fields.Boolean,
+    #'model_config': fields.Nested(model_config_partial_fields, attribute='app_model_config', allow_null=True),
+    'created_at': TimestampField,
+    'tags': fields.List(fields.Nested(tag_fields)),
+    'review_status': fields.Integer,
+    'review_remark': fields.String,
+    'user_nickname': fields.String,
+}
+
+app_pagination_with_review_fields = {
+  'page': fields.Integer,
+  'limit': fields.Integer(attribute='per_page'),
+  'total': fields.Integer,
+  'has_more': fields.Boolean(attribute='has_next'),
+  'data': fields.List(fields.Nested(app_partial_with_review_fields), attribute='items')
+}
+
 app_partial_fields = {
     'id': fields.String,
     'name': fields.String,
@@ -87,7 +119,8 @@ app_partial_fields = {
     'is_public': fields.Boolean,
     #'model_config': fields.Nested(model_config_partial_fields, attribute='app_model_config', allow_null=True),
     'created_at': TimestampField,
-    'tags': fields.List(fields.Nested(tag_fields))
+    'tags': fields.List(fields.Nested(tag_fields)),
+    'user_nickname': fields.String
 }
 
 

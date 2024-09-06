@@ -83,6 +83,10 @@ class App(db.Model):
     is_universal = db.Column(db.Boolean, nullable=False, server_default=db.text('false'))
     tracing = db.Column(db.Text, nullable=True)
     max_active_requests = db.Column(db.Integer, nullable=True)
+    user_id = db.Column(StringUUID, nullable=True)
+    # 审核状态 0:未审核 1:审核通过 2:审核不通过
+    review_status = db.Column(db.Integer, nullable=False, server_default=db.text('0'))
+    review_remark = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.text('CURRENT_TIMESTAMP(0)'))
     updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text('CURRENT_TIMESTAMP(0)'))
 
@@ -1181,6 +1185,10 @@ class UploadFile(db.Model):
     used_by = db.Column(StringUUID, nullable=True)
     used_at = db.Column(db.DateTime, nullable=True)
     hash = db.Column(db.String(255), nullable=True)
+
+    @property
+    def url(self):
+        return UploadFileParser.get_signed_temp_image_url(self.id)
 
 
 class ApiRequest(db.Model):

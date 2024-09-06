@@ -10,6 +10,7 @@ upload_config_fields = {
 
 file_fields = {
     'id': fields.String,
+    'url': fields.String,
     'name': fields.String,
     'size': fields.Integer,
     'extension': fields.String,
