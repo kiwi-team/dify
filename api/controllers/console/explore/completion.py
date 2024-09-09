@@ -182,7 +182,8 @@ class ChatScoreApi(InstalledAppResource):
             raise NotChatAppError()
         if app_model.pass_type == 'count':
             conversationLength = AppScore.getConversationLength(conversation_id)
-            if  app_model.pass_config['count'] == conversationLength:
+            #if  app_model.pass_config and app_model.pass_config['count'] == conversationLength:
+            if app_model.pass_config is not None and 'count' in app_model.pass_config and app_model.pass_config['count'] == conversationLength:
                 llmStatus = ConversationService.getLLMStatus(app_model,str(conversation_id),current_user)
                 if llmStatus == 'success':
                     return {'code':-1,'score':0},200
@@ -201,7 +202,7 @@ class ChatScoreApi(InstalledAppResource):
             if llmStatus == 'failed':
                 raise FailedCheckpointError()
             answer = AppScore.getConversationLastAnswer(conversation_id)
-            if app_model.pass_config['success_keyword']  and app_model.pass_config['success_keyword'] in answer:
+            if app_model.pass_config is not None and 'success_keyword' in app_model.pass_config  and app_model.pass_config['success_keyword']  and app_model.pass_config['success_keyword'] in answer:
                 if llmStatus == 'success':
                     return {'code':-1,'score':0},200
                 query = AppScore.getConversationFirstQuery(conversation_id)[:100]
@@ -211,7 +212,7 @@ class ChatScoreApi(InstalledAppResource):
                 code,score = LLMTestDB.saveReward(current_user.id,0,app_model.score,str(conversation_id),detail)
                 ConversationService.setLLMStatus(app_model,str(conversation_id),current_user,'success')
                 return {'code':code,'score':score},200
-            if app_model.pass_config['failed_keyword']  and app_model.pass_config['failed_keyword'] in answer:
+            if app_model.pass_config is not None and 'failed_keyword' in app_model.pass_config  and app_model.pass_config['failed_keyword']  and app_model.pass_config['failed_keyword'] in answer:
                 # 触发退出机制
                 ConversationService.setLLMStatus(app_model,str(conversation_id),current_user,'failed')
                 redis_client.set(fialed_key, 1, ex=3600)
