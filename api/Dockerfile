@@ -7,8 +7,7 @@ WORKDIR /app/api
 
 # Install Poetry
 ENV POETRY_VERSION=1.8.3
-#RUN pip install --no-cache-dir poetry==${POETRY_VERSION} poetry-plugin-pypi-mirror
-RUN pip install  poetry==${POETRY_VERSION} poetry-plugin-pypi-mirror
+RUN pip install --no-cache-dir -i  https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple  poetry==${POETRY_VERSION} poetry-plugin-pypi-mirror
 
 # Configure Poetry
 ENV POETRY_CACHE_DIR=/tmp/poetry_cache
