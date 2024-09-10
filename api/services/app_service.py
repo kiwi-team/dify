@@ -358,7 +358,8 @@ class AppService:
         app.pass_config = args.get('pass_config')
         app.is_public = args.get('is_public',False)
         app.website = args.get('website','')
-        app.review_status = args.get('review_status')
+        if args.get('review_status') is not None:
+            app.review_status = args.get('review_status')
         app.review_remark = args.get('review_remark')
         app.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
