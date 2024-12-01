@@ -46,7 +46,7 @@ class AppService:
         if current_user.is_admin:
             # B端 /console/api/apps/reviewer接口， 只需要返回C端用户创建的  
             if opts.get("need_review") is not None:
-                filters.append(App.user_id.is_(None))
+                filters.append(App.user_id.isnot(None))
             else:
                 # B端，/aiceadmin-7Y8Z/agent/apps?category=all这个页面看到的数据
                 # 审核状态 0:未审核 1:审核通过 2:审核不通过
