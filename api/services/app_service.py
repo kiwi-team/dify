@@ -6,6 +6,7 @@ from typing import cast
 import yaml
 from flask_login import current_user
 from flask_sqlalchemy.pagination import Pagination
+from sqlalchemy import or_, and_
 
 from configs import dify_config
 from constants.model_template import default_app_templates
@@ -42,11 +43,31 @@ class AppService:
             App.is_universal == False
         ]
 
-        if opts:
+        if current_user.is_admin:
+            # B端 /console/api/apps/reviewer接口， 只需要返回C端用户创建的  
+            if opts and opts.get('review_status') is not None:
+                filters.append(App.review_status == opts['review_status'])
+            if opts and opts.get("need_review") is not None:
+                filters.append(App.user_id.isnot(None))
+            else:
+                # B端，/aiceadmin-7Y8Z/agent/apps?category=all这个页面看到的数据
+                # 审核状态 0:未审核 1:审核通过 2:审核不通过
+                # 管理员后台创建的app user_id is null 
+                # C端用户创建的app， user_id is not null ,审核通过后，才能显示
+                filters.append(
+                        or_(
+                        App.user_id.is_(None),
+                        and_(App.user_id.isnot(None), App.review_status == 1)
+                    )
+                )
+        elif opts:
             if opts.get('review_status') is not None:
                 filters.append(App.review_status == opts['review_status'])
             if opts.get('user_id') is not None:
                 filters.append(App.user_id == opts['user_id'])
+            # B端 /console/api/apps/reviewer接口， 只需要返回C端用户创建的  
+            if opts.get("need_review") is not None:
+                filters.append(App.user_id.is_(None))
 
         if args['mode'] == 'workflow':
             filters.append(App.mode.in_([AppMode.WORKFLOW.value, AppMode.COMPLETION.value]))
