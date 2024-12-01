@@ -46,7 +46,8 @@ class AppListByReviewerApi(Resource):
         # get app list
         app_service = AppService()
         app_pagination = app_service.get_paginate_apps(current_user.current_tenant_id, args, {
-            'review_status': args['review_status']
+            'review_status': args['review_status'],
+            'need_review': 1 
         })
         if not app_pagination:
             return {'data': [], 'total': 0, 'page': 1, 'limit': 20, 'has_more': False}
