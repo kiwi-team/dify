@@ -7,9 +7,9 @@ WORKDIR /app/api
 ENV POETRY_VERSION=1.8.4
 
 # if you located in China, you can use aliyun mirror to speed up
-# RUN pip install --no-cache-dir poetry==${POETRY_VERSION} -i https://mirrors.aliyun.com/pypi/simple/
+RUN pip install --no-cache-dir poetry==${POETRY_VERSION} -i https://mirrors.aliyun.com/pypi/simple/
 
-RUN pip install --no-cache-dir poetry==${POETRY_VERSION}
+# RUN pip install --no-cache-dir poetry==${POETRY_VERSION}
 
 # Configure Poetry
 ENV POETRY_CACHE_DIR=/tmp/poetry_cache
@@ -24,7 +24,7 @@ FROM base AS packages
 # RUN sed -i 's@deb.debian.org@mirrors.aliyun.com@g' /etc/apt/sources.list.d/debian.sources
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gcc g++ libc-dev libffi-dev libgmp-dev libmpfr-dev libmpc-dev
+    && apt-get install -y --no-install-recommends gcc g++ libc-dev libffi-dev libgmp-dev libmpfr-dev libmpc-dev vim
 
 # Install Python dependencies
 COPY pyproject.toml poetry.lock ./
