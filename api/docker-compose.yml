@@ -200,6 +200,10 @@ services:
       <<: *shared-api-worker-env
       # Startup mode, 'api' starts the API server.
       MODE: api
+    networks:
+      - ssrf_proxy_network
+      - default
+
   worker:
     image: difyapi:v2
     restart: always
@@ -211,6 +215,9 @@ services:
       <<: *shared-api-worker-env
       # Startup mode, 'api' starts the API server.
       MODE: worker
+    networks:
+      - ssrf_proxy_network
+      - default
   
   # The DifySandbox
   sandbox:
