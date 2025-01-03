@@ -60,9 +60,9 @@ jobs:
         username: ${{ secrets.ADMIN_USER }}
         key: ${{ secrets.ADMIN_KEY }}
         port: ${{ secrets.ADMIN_PORT }}
-        #docker build -t difyapi:v2 .
         script: |
           cd /data/www/dify/api
+          docker build -t difyapi:v2 .
           docker compose down
           docker compose up -d
           docker images | grep none | awk '{print $3}' | xargs docker rmi 
