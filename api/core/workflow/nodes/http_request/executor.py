@@ -23,6 +23,7 @@ from .exc import (
     FileFetchError,
     HttpRequestNodeError,
     InvalidHttpMethodError,
+    InvalidURLError,
     RequestBodyError,
     ResponseSizeError,
 )
@@ -65,6 +66,12 @@ class Executor:
             node_data.authorization.config.api_key = variable_pool.convert_template(
                 node_data.authorization.config.api_key
             ).text
+
+        # check if node_data.url is a valid URL
+        if not node_data.url:
+            raise InvalidURLError("url is required")
+        if not node_data.url.startswith(("http://", "https://")):
+            raise InvalidURLError("url should start with http:// or https://")
 
         self.url: str = node_data.url
         self.method = node_data.method
@@ -151,7 +158,10 @@ class Executor:
                     if len(data) != 1:
                         raise RequestBodyError("json body type should have exactly one item")
                     json_string = self.variable_pool.convert_template(data[0].value).text
-                    json_object = json.loads(json_string, strict=False)
+                    try:
+                        json_object = json.loads(json_string, strict=False)
+                    except json.JSONDecodeError as e:
+                        raise RequestBodyError(f"Failed to parse JSON: {json_string}") from e
                     self.json = json_object
                     # self.json = self._parse_object_contains_variables(json_object)
                 case "binary":
