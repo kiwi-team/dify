@@ -677,7 +677,12 @@ class OpenAILargeLanguageModel(_CommonOpenAI, LargeLanguageModel):
                 continue
 
             delta = chunk.choices[0]
+            if delta is None:
+                continue
             has_finish_reason = delta.finish_reason is not None
+            if not has_finish_reason:
+                if delta.delta is None:
+                    continue
 
             if not has_finish_reason and (delta.delta.content is None or delta.delta.content == '') and \
                 delta.delta.function_call is None:
