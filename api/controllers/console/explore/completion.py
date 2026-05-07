@@ -172,6 +172,7 @@ class ChatScoreApi(InstalledAppResource):
     code，可以再多一些，0就是获取了积分。1是没有获取，2是达到今日上限, -1是不用弹框
     '''
     def get(self,installed_app, conversation_id):
+        return {'code':-1,'score':0},200
         app_model = installed_app.app
         app_mode = AppMode.value_of(app_model.mode)
         if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
